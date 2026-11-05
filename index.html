@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Alternative Bookshelf — Sociology, Psychology, History & Anthropology</title>
+  <meta name="description" content="A scrollable digital bookshelf of alternative and heterodox books across sociology, psychology, deep history, anthropology, and systems. Inspired by Ben Tossell's shelf.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="brand">
+      <div class="brand-row">
+        <h1>The Alternative Bookshelf</h1>
+        <span class="badge-tag">Curated Canon</span>
+      </div>
+      <p>Curated from Venkatesh Rao's 17-year Ribbonfarm archive, with Astral Codex Ten & Gwern cross-references. Drag the shelf, scroll, or use the scrubber below.</p>
+    </div>
+
+    <div class="header-right">
+      <div class="stats" id="stats">
+        <div><b>60</b><span>Books</span></div>
+        <div><b>5</b><span>Disciplines</span></div>
+        <div><b>~24k</b><span>Pages</span></div>
+      </div>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">🌙</button>
+    </div>
+  </header>
+
+  <!-- CONTROLS / FILTER BAR -->
+  <div class="controls-bar">
+    <div class="filter-group" id="filterGroup">
+      <!-- Buttons dynamically populated by app.js -->
+    </div>
+
+    <div class="search-wrap">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input type="text" class="search-input" id="searchInput" placeholder="Search titles, authors, ideas..." aria-label="Search books">
+    </div>
+  </div>
+
+  <!-- MAIN STAGE -->
+  <div id="stage" role="region" aria-label="Horizontal bookshelf">
+    <div id="track"></div>
+  </div>
+
+  <!-- SCRUBBER TIMELINE -->
+  <div id="scrub">
+    <div id="scrubTrack">
+      <div id="hist"></div>
+      <div id="win"></div>
+      <div id="ticks"></div>
+    </div>
+    <div class="hint">
+      <span>← → arrow keys move sections · Click a spine for insights · Drag or wheel to scroll</span>
+      <span id="pos"></span>
+    </div>
+  </div>
+
+  <!-- FLOATING DETAIL CARD -->
+  <div id="card" role="dialog" aria-modal="true" aria-label="Book details"></div>
+
+  <script src="books-data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
