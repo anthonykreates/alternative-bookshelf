@@ -20,6 +20,7 @@ const hist = $('#hist');
 const ticks = $('#ticks');
 const win = $('#win');
 const card = $('#card');
+const spinePreview = $('#spinePreview');
 const posLabel = $('#pos');
 
 // Seamless data loading (supports both HTTP server fetch and direct file:// opening)
@@ -109,13 +110,21 @@ function renderShelves() {
   track.querySelectorAll('.spine').forEach(el => {
     el.addEventListener('click', e => {
       e.stopPropagation();
+      hidePreview();
       showCard(el);
     });
     el.addEventListener('keydown', e => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
+        hidePreview();
         showCard(el);
       }
+    });
+    el.addEventListener('mouseenter', () => {
+      showPreview(el);
+    });
+    el.addEventListener('mouseleave', () => {
+      hidePreview();
     });
   });
 
@@ -128,19 +137,83 @@ function renderShelves() {
   applyFilters();
 }
 
+function getColophon(b) {
+  const cat = b.category || '';
+  if (cat.includes('Sociology')) {
+    return `<svg viewBox="0 0 24 24"><path d="M4 4h16v2H4zm2 3h2v11H6zm5 0h2v11h-2zm5 0h2v11h-2zM4 19h16v2H4z"/></svg>`;
+  }
+  if (cat.includes('Psychology')) {
+    return `<svg viewBox="0 0 24 24"><circle cx="8.5" cy="10" r="2.5"/><circle cx="15.5" cy="10" r="2.5"/><path d="M12 13l-1.5 2.5h3L12 13zm-8-3c0 4.4 3.6 8 8 8s8-3.6 8-8c0-3-1.6-5.6-4-7l-1 2c1.7 1 3 2.8 3 5 0 3.3-2.7 6-6 6s-6-2.7-6-6c0-2.2 1.3-4 3-5l-1-2C5.6 4.4 4 7 4 10z"/></svg>`;
+  }
+  if (cat.includes('Anthropology')) {
+    return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="12" cy="12" rx="4.5" ry="9" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="1.5"/></svg>`;
+  }
+  if (cat.includes('History')) {
+    return `<svg viewBox="0 0 24 24"><path d="M2 5v14c0 .55.45 1 1 1 3 0 6.5 1 9 3 2.5-2 6-3 9-3 .55 0 1-.45 1-1V5c0-.55-.45-1-1-1-3 0-6.5 1-9 3-2.5-2-6-3-9-3-.55 0-1 .45-1 1zm9 13.5c-2.3-.9-5.1-1.5-7-1.5V6.5c1.9 0 4.7.6 7 1.5v10.5zm2 0V8c2.3-.9 5.1-1.5 7-1.5v10.5c-1.9 0-4.7.6-7 1.5z"/></svg>`;
+  }
+  return `<svg viewBox="0 0 24 24"><circle cx="9" cy="9" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="15" cy="15" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><line x1="12" y1="9" x2="12" y2="15" stroke="currentColor" stroke-width="1.5"/></svg>`;
+}
+
 function renderSpine(b) {
   const isMatch = checkMatch(b);
   const dimmedClass = isMatch ? '' : ' dimmed';
-  const style = `width:calc(${b.spine_w}px * var(--k, 1));height:calc(${b.spine_h}px * var(--k, 1));background-color:${b.color};color:${b.ink};`;
+  // Proportional thickness from actual page count (Ben Tossell bookshelf style)
+  const spineW = Math.max(22, Math.min(54, Math.round(18 + (b.pages / 28))));
+  const spineH = b.spine_h || 330;
+  const style = `width:calc(${spineW}px * var(--k, 1));height:calc(${spineH}px * var(--k, 1));background-color:${b.color};color:${b.ink};`;
   const a11y = `role="button" tabindex="0" aria-label="${esc(b.short)} by ${esc(b.author)}"`;
 
   return `
     <div class="spine${dimmedClass}" ${a11y} data-id="${b.id}" style="${style}">
-      <div class="spine-ribs"></div>
+      <div class="spine-headband"></div>
+      <div class="spine-texture"></div>
+      <div class="spine-joints"></div>
+      <div class="spine-lighting"></div>
+      <div class="spine-top-accent" style="background:${b.accent || b.ink}"></div>
       <span class="spine-author">${esc(b.author)}</span>
       <span class="spine-title">${esc(b.short)}</span>
+      <div class="spine-colophon" aria-hidden="true">${getColophon(b)}</div>
     </div>
   `;
+}
+
+function showPreview(el) {
+  if (card.classList.contains('on') && el.classList.contains('sel')) return;
+  const b = ALL_BOOKS.find(x => x.id === el.dataset.id);
+  if (!b) return;
+
+  spinePreview.innerHTML = `
+    <div class="preview-cover-wrap">
+      <img src="${b.cover}" alt="${esc(b.short)}" class="preview-cover" 
+           onerror="this.onerror=null;this.parentElement.innerHTML='<div style=\\'width:100%;height:100%;background:${b.color};color:${b.ink};font-size:9px;padding:4px;display:flex;align-items:center;text-align:center;\\'>${esc(b.short)}</div>'" />
+    </div>
+    <div class="preview-info">
+      <div class="preview-title">${esc(b.short)}</div>
+      <div class="preview-author">${esc(b.author)}</div>
+      <div class="preview-meta">${b.year} · ${b.pages} pages</div>
+    </div>
+  `;
+
+  spinePreview.classList.add('on');
+
+  const r = el.getBoundingClientRect();
+  const pw = spinePreview.offsetWidth || 250;
+  const ph = spinePreview.offsetHeight || 86;
+
+  let left = r.left + r.width / 2 - pw / 2;
+  left = Math.max(12, Math.min(window.innerWidth - pw - 12, left));
+
+  let top = r.top - ph - 14;
+  if (top < 8) {
+    top = r.bottom + 14;
+  }
+
+  spinePreview.style.left = left + 'px';
+  spinePreview.style.top = top + 'px';
+}
+
+function hidePreview() {
+  spinePreview.classList.remove('on');
 }
 
 function checkMatch(b) {
@@ -297,6 +370,7 @@ function setupDrag() {
     lastX = e.clientX;
     lastT = performance.now();
     moved = false;
+    hidePreview();
   });
 
   stage.addEventListener('pointermove', e => {
@@ -338,6 +412,7 @@ function setupDrag() {
   stage.addEventListener('wheel', e => {
     touched = true;
     e.preventDefault();
+    hidePreview();
     const delta = (Math.abs(e.deltaX) > Math.abs(e.deltaY)) ? e.deltaX : e.deltaY;
     setX(target + delta);
     hideCard();
@@ -390,6 +465,7 @@ function setupKeyboard() {
 
 // Card details modal
 function showCard(el) {
+  hidePreview();
   const b = ALL_BOOKS.find(x => x.id === el.dataset.id);
   if (!b) return;
 
@@ -457,6 +533,7 @@ function showCard(el) {
 
 function hideCard() {
   card.classList.remove('on');
+  hidePreview();
   track.querySelectorAll('.spine.sel').forEach(s => s.classList.remove('sel'));
 }
 

@@ -1452,10 +1452,25 @@ books = [
     }
 ]
 
+custom_covers = {
+    "master-and-his-emissary": "https://covers.openlibrary.org/b/id/9169000-L.jpg",
+    "rules-for-radicals": "https://covers.openlibrary.org/b/id/419761-L.jpg",
+    "the-cybernetic-brain": "https://covers.openlibrary.org/b/id/13025690-L.jpg",
+    "tempo": "https://covers.openlibrary.org/b/id/10542825-L.jpg",
+    "legal-systems-very-different": "https://covers.openlibrary.org/b/id/12561321-L.jpg",
+    "the-gervais-principle": "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1601873218i/18581690.jpg"
+}
+
 for b in books:
-    b["cover"] = f"https://covers.openlibrary.org/b/isbn/{b['isbn']}-L.jpg"
+    if b["id"] in custom_covers:
+        b["cover"] = custom_covers[b["id"]]
+    else:
+        b["cover"] = f"https://covers.openlibrary.org/b/isbn/{b['isbn']}-L.jpg"
 
 with open("/home/anthony/repos/alternative-bookshelf/books.json", "w") as f:
     json.dump(books, f, indent=2)
+
+with open("/home/anthony/repos/alternative-bookshelf/books-data.js", "w") as f:
+    f.write("window.EMBEDDED_BOOKS = " + json.dumps(books, indent=2) + ";\n")
 
 print(f"Generated {len(books)} books across {len(set(b['category'] for b in books))} categories to books.json")
